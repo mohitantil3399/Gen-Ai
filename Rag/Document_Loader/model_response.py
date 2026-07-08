@@ -41,3 +41,5 @@ reply = client.invoke(user_prompt).content
 
 #printing the output 
 print("The assistant says : ",reply)
+
+ 

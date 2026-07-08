@@ -1,0 +1,43 @@
+Text splitting is essentially chunking down the large Rag documents to create embeddings 
+which can easily be accessed and processed for generating response .
+
+we are going to see three types og splitting methods :
+1. Character-Based chunking.
+2. Token-Based chunking.
+3. Semantic / meaning based chunking.
+
+1. Character Based chunking :
+     This is the simplest method of splitting the large documents based on the 
+     the number of characters/ words or numbers.It does not account for meaning of words 
+     or tokens in the document.
+     
+2. Token Based chunking :
+     It divides the document into chunks on the basis of tokens , not the characters.
+     Since LLMs work on tokens instead of words , this method aligns better with how a 
+     model processes Text.
+
+3. Semantic meaning based chunking:
+     It divides a document into chunks based on the meaning and structure of the document 
+     rather than the characters or tokens.
+     The goal is to keep complete ideas together so that the chunks remain accessible,
+     readable and meaningfull to the LLM as well as user.
+     --under development.
+
+4.📝 RecursiveTextSplitter (LangChain)
+     Purpose: Splits large text into smaller chunks for LLM processing.
+
+     Method: Uses a recursive hierarchy of separators:
+
+     separators = ["\n\n", "\n", "  ", ""]
+     Starts with \n\n (paragraphs).
+
+     If chunks are still too large, moves to \n (lines).
+
+     Then " " (double spaces).
+
+     Finally "" (character-level split).
+
+     Benefit: Ensures chunks fit within token limits while preserving context.
+
+     Use cases: Document preprocessing for embeddings, retrieval, summarization, QA systems   
+          

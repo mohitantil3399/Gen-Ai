@@ -32,13 +32,16 @@ while True:
                 "role":"user",
                 "content":prompt
             })
-            #generating the response 
-            response = client.invoke(messages)
+            #generating the response as stream
+            print("=="*50)
+            print("\nAssistant:",end="",flush=True)
+            
             #printing the response 
-            reply = response.content
-            print("=="*50)
-            print("\nAssistant:",reply)
-            print("=="*50)
+            reply =""
+            for chunk in client.stream(messages):
+                print(chunk.content,end="",flush=True)
+                reply+=chunk.content
+            print("\n","=="*50)
 
             #appending the response to the messages list of history 
             messages.append({
