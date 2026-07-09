@@ -22,3 +22,8 @@ dist/
 # OS & Editor Files
 .DS_Store
 Thumbs.db
+
+# Vector DB (Chroma persistent storage)
+Chroma_DB/
+chroma_db/
+*.sqlite3

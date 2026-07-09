@@ -1,5 +1,5 @@
 {
-    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+    "python.defaultInterpreterPath": "c:\\Users\\MOHIT\\Documents\\Gen Ai\\.venv\\Scripts\\python.exe",
     "python.terminal.executeInFileDir": true,
     "code-runner.fileDirectoryAsCwd": true
 }

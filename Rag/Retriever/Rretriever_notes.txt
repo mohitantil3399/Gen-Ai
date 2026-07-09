@@ -1,0 +1,265 @@
+============================================================
+         RETRIEVERS IN LANGCHAIN — NOTES  
+============================================================
+
+DEFINITION:
+-----------
+Retrievers are used to retrieve specific information from an information
+source (vector store, web, database, etc.) based on a user query.
+
+In LangChain, a Retriever is any object that accepts a string query
+and returns a list of relevant Document objects.
+
+Interface: BaseRetriever (from langchain_core.retrievers)
+Method   : retriever.invoke("your query") → List[Document]
+
+
+============================================================
+TYPES OF RETRIEVERS
+============================================================
+
+------------------------------------------------------------
+1. SOURCE-BASED RETRIEVERS
+------------------------------------------------------------
+These retrieve from external, pre-existing knowledge sources.
+No vector store is needed — they call APIs directly.
+
+  a) WikipediaRetriever
+     - Fetches relevant Wikipedia articles
+     - Package : langchain-community
+     - Usage   :
+         from langchain_community.retrievers import WikipediaRetriever
+         retriever = WikipediaRetriever(top_k_results=3, lang="en")
+         docs = retriever.invoke("Eiffel Tower")
+
+  b) ArxivRetriever
+     - Fetches research papers from arxiv.org
+     - Best for academic/scientific queries
+     - Usage   :
+         from langchain_community.retrievers import ArxivRetriever
+         retriever = ArxivRetriever(load_max_docs=3)
+         docs = retriever.invoke("transformer architecture")
+
+  c) PubMedRetriever
+     - Fetches biomedical literature from PubMed
+     - Usage   :
+         from langchain_community.retrievers import PubMedRetriever
+         retriever = PubMedRetriever()
+         docs = retriever.invoke("diabetes treatment 2025")
+
+  d) TavilySearchRetriever  <- popular in 2026
+     - Web search retriever using Tavily API (great for RAG)
+     - Usage   :
+         from langchain_community.retrievers import TavilySearchAPIRetriever
+         retriever = TavilySearchAPIRetriever(k=5)
+         docs = retriever.invoke("latest AI news 2026")
+
+
+------------------------------------------------------------
+2. RETRIEVAL STRATEGY-BASED RETRIEVERS
+------------------------------------------------------------
+These retrieve from a Vector Store using different strategies.
+
+  STEP 0: Getting a retriever from a Vector Store
+  ------------------------------------------------
+  Any LangChain vector store can be converted to a retriever:
+
+      retriever = vectorStore.as_retriever(
+          search_type="similarity",   # default
+          search_kwargs={"k": 5}      # return top 5 chunks
+      )
+
+  ----------------------------------------------------------
+  a) SIMILARITY SEARCH (Default)
+  ----------------------------------------------------------
+  - Finds the top-k chunks most similar to the query
+  - Uses cosine similarity on embedding vectors
+  - Fast and simple — works well for most cases
+
+      retriever = vectorStore.as_retriever(
+          search_type="similarity",
+          search_kwargs={"k": 4}
+      )
+
+  ----------------------------------------------------------
+  b) MMR — Maximal Marginal Relevance
+  ----------------------------------------------------------
+  - Balances RELEVANCE and DIVERSITY of retrieved chunks
+  - Avoids returning near-duplicate chunks
+  - Best when your chunks have lots of repeated content
+
+  How it works:
+    → Fetches a larger pool of candidates (fetch_k)
+    → Selects k chunks that are relevant but diverse from each other
+    → lambda_mult controls balance: 1.0 = pure similarity, 0.0 = pure diversity
+
+      retriever = vectorStore.as_retriever(
+          search_type="mmr",
+          search_kwargs={
+              "k": 4,
+              "fetch_k": 20,
+              "lambda_mult": 0.7
+          }
+      )
+
+  ----------------------------------------------------------
+  c) MULTIQUERY RETRIEVER
+  ----------------------------------------------------------
+  - Uses an LLM to auto-generate multiple versions of your query
+  - Each version is used to retrieve docs → results are merged (union)
+  - Overcomes the limitation that one query phrasing might miss docs
+
+  How it works:
+    User query → LLM generates 3-5 paraphrased queries
+              → each query searches the vector store
+              → unique results are combined and returned
+
+      from langchain.retrievers.multi_query import MultiQueryRetriever
+      from langchain_openai import ChatOpenAI
+
+      llm = ChatOpenAI(model="gpt-4o-mini")
+      retriever = MultiQueryRetriever.from_llm(
+          retriever=vectorStore.as_retriever(),
+          llm=llm
+      )
+      docs = retriever.invoke("What is machine learning?")
+
+  ----------------------------------------------------------
+  d) CONTEXTUAL COMPRESSION RETRIEVER
+  ----------------------------------------------------------
+  - Retrieves docs then compresses/filters each chunk using an LLM
+  - Returns only the RELEVANT PART of each chunk, not the whole chunk
+  - Reduces noise sent to the final LLM
+
+      from langchain.retrievers import ContextualCompressionRetriever
+      from langchain.retrievers.document_compressors import LLMChainExtractor
+
+      compressor = LLMChainExtractor.from_llm(llm)
+      retriever = ContextualCompressionRetriever(
+          base_compressor=compressor,
+          base_retriever=vectorStore.as_retriever()
+      )
+
+  ----------------------------------------------------------
+  e) SELF-QUERY RETRIEVER
+  ----------------------------------------------------------
+  - Uses an LLM to parse natural language queries into:
+      → a semantic search string
+      → metadata filters (e.g. source="Taj Mahal", year=2024)
+  - Best when your documents have rich metadata
+
+      from langchain.retrievers.self_query.base import SelfQueryRetriever
+      from langchain.chains.query_constructor.schema import AttributeInfo
+
+      metadata_field_info = [
+          AttributeInfo(name="source", description="The topic", type="string")
+      ]
+      retriever = SelfQueryRetriever.from_llm(
+          llm, vectorStore,
+          document_contents="Facts about landmarks and tech",
+          metadata_field_info=metadata_field_info
+      )
+
+  ----------------------------------------------------------
+  f) ENSEMBLE RETRIEVER (BM25 + Vector Search)  <- Popular in 2026
+  ----------------------------------------------------------
+  - Combines keyword search (BM25) with vector search
+  - Best of both worlds: exact keyword match + semantic understanding
+  - Uses Reciprocal Rank Fusion (RRF) to merge results
+
+      from langchain.retrievers import EnsembleRetriever
+      from langchain_community.retrievers import BM25Retriever
+
+      bm25_retriever = BM25Retriever.from_documents(docs)
+      bm25_retriever.k = 4
+
+      vector_retriever = vectorStore.as_retriever(search_kwargs={"k": 4})
+
+      ensemble_retriever = EnsembleRetriever(
+          retrievers=[bm25_retriever, vector_retriever],
+          weights=[0.4, 0.6]   # 40% BM25, 60% vector
+      )
+
+  ----------------------------------------------------------
+  g) PARENT DOCUMENT RETRIEVER
+  ----------------------------------------------------------
+  - Indexes small chunks (for precise retrieval)
+  - But returns the full parent document (for rich context)
+  - Best when chunks alone lose too much context
+
+      from langchain.retrievers import ParentDocumentRetriever
+      from langchain.storage import InMemoryStore
+
+      store = InMemoryStore()
+      retriever = ParentDocumentRetriever(
+          vectorstore=vectorStore,
+          docstore=store,
+          child_splitter=RecursiveCharacterTextSplitter(chunk_size=400),
+          parent_splitter=RecursiveCharacterTextSplitter(chunk_size=2000)
+      )
+      retriever.add_documents(docs)
+
+
+============================================================
+HOW RETRIEVER FITS INTO A RAG CHAIN (July 2026 pattern)
+============================================================
+
+Standard RAG pipeline using LCEL (LangChain Expression Language):
+
+    from langchain_core.runnables import RunnablePassthrough
+    from langchain_core.output_parsers import StrOutputParser
+    from langchain_core.prompts import ChatPromptTemplate
+
+    retriever = vectorStore.as_retriever(search_kwargs={"k": 4})
+
+    prompt = ChatPromptTemplate.from_template("""
+    Answer the question using only the context below.
+    Context: {context}
+    Question: {question}
+    """)
+
+    def format_docs(docs):
+        return "\n\n".join(doc.page_content for doc in docs)
+
+    chain = (
+        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        | prompt
+        | llm
+        | StrOutputParser()
+    )
+
+    answer = chain.invoke("What is machine learning?")
+
+
+============================================================
+QUICK COMPARISON TABLE
+============================================================
+
+  Retriever              | Best For                           | Cost
+  -----------------------|------------------------------------|-------
+  Similarity             | General purpose retrieval          | Low
+  MMR                    | Avoiding duplicate chunks          | Low
+  MultiQuery             | Ambiguous or short queries         | Medium
+  Contextual Compression | Noisy or long chunks               | High
+  Self-Query             | Structured metadata filtering      | Medium
+  Ensemble (BM25+Vec)    | Keyword + semantic hybrid          | Low
+  Parent Document        | Context-rich retrieval             | Low
+  Wikipedia / Arxiv      | Open-domain Q&A (no vector store)  | Free
+
+
+============================================================
+KEY PARAMETER: search_kwargs
+============================================================
+
+  "k"           → number of documents to return (default: 4)
+  "fetch_k"     → candidate pool size for MMR (default: 20)
+  "lambda_mult" → diversity control in MMR (0.0 to 1.0)
+  "filter"      → metadata filter dict e.g. {"source": "AI"}
+
+  Example:
+      retriever = vectorStore.as_retriever(
+          search_type="similarity",
+          search_kwargs={"k": 6, "filter": {"source": "ML"}}
+      )
+
+============================================================

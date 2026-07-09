@@ -1,0 +1,219 @@
+
+================================================================================
+                    VECTOR DATABASE — NOTES (RAG Pipeline)
+================================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. RAG PIPELINE OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Document
+     │
+     ▼
+  Chunking  (split document into smaller, meaningful pieces)
+     │
+     ▼
+  Embeddings  (convert each chunk into a dense numerical vector)
+  [using OpenAI Embedding model, e.g., text-embedding-ada-002 / text-embedding-3-small]
+     │
+     ▼
+  Vector Store  (store & index those vectors for fast retrieval)
+     │
+     ▼
+  Similarity Search  (given a query vector, find the closest stored vectors)
+     │
+     ▼
+  Retrieved Chunks  →  passed as context to LLM  →  Final Answer
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. WHAT IS A VECTOR STORE (Vector Database)?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  A Vector Store is a specialized database designed to:
+    - Store high-dimensional vectors (embeddings).
+    - Index them efficiently for fast nearest-neighbour search.
+    - Return the most semantically similar results given a query embedding.
+
+  Unlike traditional databases that match exact values (SQL WHERE clause),
+  vector stores find results by SEMANTIC SIMILARITY — even if the words differ.
+
+  Example:
+    Query  : "How do transformers work?"
+    Matches: chunk about "attention mechanism in neural networks"
+             (similar meaning, different words)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. APPROXIMATE NEAREST NEIGHBOUR (ANN) ALGORITHMS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Vector stores use ANN (Approximate Nearest Neighbour) algorithms
+  instead of exact search because exact KNN over millions of vectors is too slow.
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │ Algorithm │ Full Name                          │ Key Idea               │
+  ├───────────┼────────────────────────────────────┼────────────────────────┤
+  │  HNSW     │ Hierarchical Navigable Small World │ Graph-based index;     │
+  │           │                                    │ multi-layer graph for  │
+  │           │                                    │ fast greedy traversal  │
+  ├───────────┼────────────────────────────────────┼────────────────────────┤
+  │  IVF      │ Inverted File Index                │ Clusters vectors into  │
+  │           │                                    │ partitions; searches   │
+  │           │                                    │ only relevant clusters │
+  ├───────────┼────────────────────────────────────┼────────────────────────┤
+  │  PQ       │ Product Quantization               │ Compresses vectors into│
+  │           │                                    │ smaller codes to save  │
+  │           │                                    │ memory & speed up ops  │
+  └───────────┴────────────────────────────────────┴────────────────────────┘
+
+  ● HNSW  — Best for high recall & low latency; widely used in FAISS, Qdrant, Weaviate.
+  ● IVF   — Good for large datasets; often combined with PQ → IVF+PQ.
+  ● PQ    — Reduces memory footprint; trades a little accuracy for speed.
+
+  Note: These algorithms trade a small amount of accuracy for a massive
+        speed-up compared to brute-force exact search.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. SIMILARITY METRICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  The "closeness" of two vectors is measured using:
+
+  ┌──────────────────────┬───────────────────────────────────────────────────┐
+  │ Metric               │ Use Case                                          │
+  ├──────────────────────┼───────────────────────────────────────────────────┤
+  │ Cosine Similarity    │ Most common for text embeddings; measures angle   │
+  │                      │ between vectors (ignores magnitude).              │
+  ├──────────────────────┼───────────────────────────────────────────────────┤
+  │ Dot Product          │ Fast; used when vectors are normalized.           │
+  ├──────────────────────┼───────────────────────────────────────────────────┤
+  │ Euclidean Distance   │ L2 distance; good for dense numeric data.         │
+  └──────────────────────┴───────────────────────────────────────────────────┘
+
+  For OpenAI embeddings → Cosine Similarity is recommended.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. POPULAR VECTOR DATABASES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─────────────────┬───────────────────────────────────────────────────────┐
+  │ Database        │ Notes                                                 │
+  ├─────────────────┼───────────────────────────────────────────────────────┤
+  │ FAISS           │ Facebook AI; in-memory; very fast; no persistence     │
+  │                 │ out-of-the-box; great for prototyping.                │
+  ├─────────────────┼───────────────────────────────────────────────────────┤
+  │ Chroma          │ Open-source; easy to use; LangChain native support.   │
+  ├─────────────────┼───────────────────────────────────────────────────────┤
+  │ Pinecone        │ Managed cloud service; production-grade; scalable.    │
+  ├─────────────────┼───────────────────────────────────────────────────────┤
+  │ Qdrant          │ Open-source; supports HNSW; filtering + search.       │
+  ├─────────────────┼───────────────────────────────────────────────────────┤
+  │ Weaviate        │ Open-source; schema-based; hybrid search support.     │
+  ├─────────────────┼───────────────────────────────────────────────────────┤
+  │ Milvus          │ Open-source; enterprise-grade; supports IVF, HNSW.   │
+  └─────────────────┴───────────────────────────────────────────────────────┘
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. HOW IT WORKS — STEP BY STEP (with LangChain + OpenAI + Chroma)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Install: pip install langchain chromadb openai
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │ Chroma stores data on disk automatically via persist_directory.         │
+  │ No manual save call needed — data persists between sessions.            │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  # INDEXING PHASE (done once — embeds & saves to disk)
+  ───────────────────────────────────────────────────────
+  from langchain_community.document_loaders import TextLoader
+  from langchain.text_splitter import RecursiveCharacterTextSplitter
+  from langchain_openai import OpenAIEmbeddings
+  from langchain_community.vectorstores import Chroma
+
+  loader    = TextLoader("my_document.txt")
+  docs      = loader.load()
+
+  splitter  = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+  chunks    = splitter.split_documents(docs)
+
+  embedding = OpenAIEmbeddings()               # text-embedding-ada-002 by default
+
+  vectordb  = Chroma.from_documents(
+                  documents        = chunks,
+                  embedding        = embedding,
+                  persist_directory= "./chroma_db"   # folder where Chroma saves data
+              )
+  # Chroma auto-persists; no explicit .persist() needed in newer versions
+
+
+  # RETRIEVAL PHASE (done at query time — loads from disk)
+  ──────────────────────────────────────────────────────────
+  vectordb  = Chroma(
+                  persist_directory = "./chroma_db",
+                  embedding_function= embedding
+              )
+
+  retriever = vectordb.as_retriever(search_kwargs={"k": 4})
+
+  query     = "What is a vector store?"
+  results   = retriever.invoke(query)           # returns top-4 similar chunks
+  for doc in results:
+      print(doc.page_content)
+
+
+  # DIRECT SIMILARITY SEARCH (without retriever)
+  ──────────────────────────────────────────────────────────
+  docs_with_scores = vectordb.similarity_search_with_score(query, k=4)
+  for doc, score in docs_with_scores:
+      print(f"Score: {score:.4f} | Content: {doc.page_content[:80]}...")
+  # Lower score = more similar (L2 distance by default in Chroma)
+
+
+  # USING MMR (Maximal Marginal Relevance — avoids redundant results)
+  ──────────────────────────────────────────────────────────────────────
+  retriever = vectordb.as_retriever(
+                  search_type  = "mmr",
+                  search_kwargs= {"k": 4, "fetch_k": 20}
+              )
+  results   = retriever.invoke(query)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. KEY CONCEPTS SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ● Embedding      : Numerical representation of text in high-dimensional space
+                     (e.g., 1536 dimensions for text-embedding-ada-002).
+
+  ● Chunk          : A smaller piece of a document; keeps context manageable
+                     for the embedding model and LLM context window.
+
+  ● Vector Store   : Database that stores, indexes, and searches embeddings.
+
+  ● ANN Search     : Fast approximate search using HNSW / IVF / PQ algorithms.
+
+  ● k in k-NN      : Number of top similar results to retrieve (e.g., k=4).
+
+  ● Retriever      : LangChain abstraction over a vector store for RAG chains.
+
+  ● Semantic Search: Finding results by meaning, not keyword matching.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. TIPS & BEST PRACTICES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✔  Choose chunk_size based on your embedding model's token limit.
+  ✔  Add chunk_overlap (e.g., 50–100 tokens) to avoid losing context at boundaries.
+  ✔  Use metadata filtering (e.g., by source file, date) for precision retrieval.
+  ✔  For production: use Pinecone / Qdrant / Weaviate instead of in-memory FAISS.
+  ✔  Persist your vector store to disk/cloud so you don't re-embed on every run.
+  ✔  Use MMR (Maximal Marginal Relevance) retrieval to reduce redundant results.
+  ✔  Always normalize embeddings if using dot product as your similarity metric.
+
+================================================================================

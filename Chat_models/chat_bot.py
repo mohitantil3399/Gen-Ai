@@ -10,7 +10,7 @@ client = ChatOpenAI(
     temperature=0.2,
     max_completion_tokens=400
 )
-prompt = input("You : ")
+# prompt = input("You : ")
 messages = [{
     "role":"system",
     "content":"You are a helpful assistant , bound by ethics."
