@@ -32,7 +32,7 @@ splitter = RecursiveCharacterTextSplitter(
 splitted_docs = splitter.split_documents(loaded_pdf)
 print(f"No. of chunks : {len(splitted_docs)}")
 
-#calling the chat model from openrouter api
+#calling the embeddings model from openrouter api
 embedding_model = OpenAIEmbeddings(
     api_key=api_key,
     base_url="https://openrouter.ai/api/v1",
