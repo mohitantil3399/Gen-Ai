@@ -1,5 +1,5 @@
 langchain>=0.2.0
-langchain-community>=0.2.0
+langchain-tavily
 langchain-openai>=0.1.0
 langchain-mistralai>=0.1.0
 openai>=1.0.0

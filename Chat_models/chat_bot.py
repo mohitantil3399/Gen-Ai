@@ -6,7 +6,7 @@ import time
 load_dotenv()
 
 # You named it Grok_KEY in .env, so we're retrieving that
-api_key = os.getenv('Grok_KEY')
+api_key = os.getenv('Groq_KEY')
 
 client = ChatOpenAI(
     api_key=api_key,

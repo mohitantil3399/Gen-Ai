@@ -1,0 +1,51 @@
+Tools are simply functions or external services that an LLM can use to do real-world tasks. On its own, an LLM
+can only generate text, but with tools it can fetch live data, perform accurate calculations, access databases, or
+execute actions. In short, tools extend an LLM from just thinking to actually doing things.
+
+examples : search tool , video parsing tool , api call tool , etc.
+
+We use an LLM as the brain, tools to perform tasks, and our code
+to define the logic together, this creates an agent.
+LLM decides what to do,
+tools help do the task,
+and our code controls how everything works together.
+Agent = Brain (LLM) + Tools + Control Logic (our code)
+
+Tools category
+
+Build-in Tools Custom tools
+
+We use an LLM as the brain, tools to perform tasks, and our code
+to define the logic together, this creates an agent.
+LLM decides what to do,
+tools help do the task,
+and our code controls how everything works together.
+Agent = Brain (LLM) + Tools + Control Logic (our code)
+
+Agent
+
+LLM Tools:
+
+    Built-in tools:
+        are tools that are
+        already provided by a framework,
+        so you don’t have to create them
+        from scratch. They are ready to
+        use and help the LLM perform
+        common tasks like searching the
+        internet, doing calculations, or
+        working with data. You just
+        connect them to your LLM, and it
+        can start using them easily.
+
+    Custom tools :
+        are tools that you
+        create yourself based on your
+        needs. They are usually simple
+        functions written in code that help
+        the LLM perform specific tasks,
+        like accessing your database,
+        processing your data, or calling
+        your own APIs. This allows you to
+        give the LLM exact abilities that
+        match your project.
