@@ -18,3 +18,8 @@ beautifulsoup4>=4.12.0
 
 # Retrievers support
 arxiv==1.4.8  # langchain-community needs v1.x API (.results() removed in v2.x)
+
+# Research Agent UI
+streamlit>=1.35.0
+langgraph
+tavily-python
