@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
+from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from tools import web_search ,tavily_search
@@ -25,9 +26,17 @@ openrouter_api = os.getenv("OPENROUTER_API_KEY")
 openrouter_client = ChatOpenAI(
     api_key= openrouter_api,
     base_url = "https://openrouter.ai/api/v1",
-    model= "nvidia/nemotron-3-ultra-550b-a55b:free",
+    model= "openrouter/free",
     temperature=0.1,
     timeout=30,
+)
+#mistral client 
+mistral_key = os.getenv("MISTRAL_API_KEY")
+mistral_client = ChatMistralAI(
+    api_key= mistral_key,
+    model= "mistral-medium-3-5",
+    temperature=0.1,
+    timeout=80,
 )
 #1st agent 
 def search_agent():
@@ -39,7 +48,7 @@ def search_agent():
 #2nd agent 
 def scrape_url_agent():
     return create_agent(
-        model=openrouter_client,
+        model=mistral_client,
         tools=[web_search]
     )
 #creating writer agent 
@@ -61,7 +70,7 @@ writer_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 #Writer sequence of runnables 
-writer_sequence = writer_prompt|openrouter_client|StrOutputParser()
+writer_sequence = writer_prompt|mistral_client|StrOutputParser()
 
 #critic_sequence : to analyse my research and score it
 critic_prompt = ChatPromptTemplate.from_messages([

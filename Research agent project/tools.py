@@ -26,7 +26,7 @@ def tavily_search(query:str)->str:
     for r in results['results']:
         title = r['title']
         url = r['url']
-        content = r['content'][:1000]#taking only 200 words of content
+        content = r['content'][:800]#taking only 200 words of content
         out.append(f"Title: {title} \nUrl: {url} \nContent: {content}")
     return "\n=================\n".join(out)#joining to an empty string , to make the list a string 
 
@@ -36,7 +36,7 @@ def tavily_search(query:str)->str:
 def web_search(url:str)->str:
     """Get complete web page content from a URL."""
     try:
-        response = requests.get(url, timeout = 10,headers={"User-Agent":'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'})
+        response = requests.get(url, timeout = 8,headers={"User-Agent":'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'})
         response.raise_for_status()  # HTTP errors
         soup = BeautifulSoup(response.text, 'html.parser')
         
@@ -45,7 +45,7 @@ def web_search(url:str)->str:
             for element in soup.find_all(tag):
                 element.decompose()
         
-        return soup.get_text(separator=" ", strip=True)[:15000]
+        return soup.get_text(separator=" ", strip=True)[:10000]
     except Exception as e:
         return f"Error fetching URL: {e}"
 

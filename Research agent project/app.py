@@ -232,21 +232,19 @@ CSS = """
     margin-bottom: 1rem;
     box-shadow: 0 4px 15px rgba(167,139,250,.4);
 }
-
-/* ── Download button & component ── */
-.download-btn, .download-btn * {
-    color: #f1f5f9 !important;
-}
-.download-btn button {
+/* ── Download button ── */
+.download-btn {
     background: linear-gradient(135deg, #059669, #10b981) !important;
     color: white !important;
-    border-radius: 10px !important;
-    font-weight: 600 !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
     border: none !important;
-    transition: all .3s !important;
+    padding: 0.75rem 1.5rem !important;
+    margin-top: 1rem !important;
+    transition: all .3s ease !important;
 }
-.download-btn button:hover {
-    transform: translateY(-1px) !important;
+.download-btn:hover {
+    transform: translateY(-2px) !important;
     box-shadow: 0 6px 20px rgba(16,185,129,.5) !important;
 }
 
@@ -374,7 +372,7 @@ def run_pipeline(topic: str):
     )
 
 # ── Build UI ──────────────────────────────────────────────────────────────────
-with gr.Blocks(css=CSS, title="Deep Research Agent", theme=gr.themes.Default(dark_mode=True)) as app:
+with gr.Blocks(css=CSS, title="Deep Research Agent", theme=gr.themes.Default(primary_hue="gray")) as app:
 
     # Hero
     gr.HTML("""
@@ -403,7 +401,7 @@ with gr.Blocks(css=CSS, title="Deep Research Agent", theme=gr.themes.Default(dar
             with gr.Tabs():
                 with gr.Tab("📄 Research Report"):
                     report_out  = gr.Markdown(elem_classes="report-box")
-                    download_out = gr.File(label="📥 Download Report + Review (.md)", elem_classes="download-btn")
+                    download_out = gr.DownloadButton(label="📥 Download Report + Review (.md)", elem_classes="download-btn")
 
                 with gr.Tab("🧐 Peer Review"):
                     review_out = gr.Markdown(elem_classes="review-box")
@@ -435,12 +433,14 @@ with gr.Blocks(css=CSS, title="Deep Research Agent", theme=gr.themes.Default(dar
             </div>
             """)
 
-    # ── Wire up button ────────────────────────────────────────────────────────
-    run_btn.click(
+    # ── Wire up button & Enter key ────────────────────────────────────────────
+    run_event = dict(
         fn=run_pipeline,
         inputs=[topic_box],
         outputs=[stages_out, status_out, report_out, review_out, download_out],
     )
+    run_btn.click(**run_event)
+    topic_box.submit(**run_event)
 
 if __name__ == "__main__":
     app.launch(share=False)
