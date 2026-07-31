@@ -9,56 +9,80 @@ import os
 CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-* { font-family: 'Inter', sans-serif !important; }
-
-body, .gradio-container {
+:root, body, .gradio-container {
+    font-family: 'Inter', sans-serif !important;
     background: radial-gradient(ellipse at top, #0f0c29, #302b63, #24243e) !important;
     min-height: 100vh;
+    color: #f1f5f9 !important;
+    --body-text-color: #f1f5f9 !important;
+    --body-text-color-subdued: #cbd5e1 !important;
+    --block-background-fill: rgba(15, 12, 41, 0.6) !important;
+    --block-border-color: rgba(108, 99, 255, 0.3) !important;
+    --input-background-fill: #1e1b4b !important;
+}
+
+* { font-family: 'Inter', sans-serif !important; }
+
+/* Reset default block white backgrounds */
+.block, .form, fieldset, label, .gradio-container div, .gradio-container span, .gradio-container p {
+    background-color: transparent !important;
+    color: #e2e8ff;
 }
 
 /* ── Hero ── */
 .hero {
     text-align: center;
     padding: 2.5rem 1rem 2rem;
-    background: linear-gradient(135deg, rgba(108,99,255,.15), rgba(255,99,165,.08));
-    border: 1px solid rgba(108,99,255,.35);
+    background: linear-gradient(135deg, rgba(108,99,255,.25), rgba(255,99,165,.15)) !important;
+    border: 1px solid rgba(108,99,255,.4) !important;
     border-radius: 22px;
     margin-bottom: 1.5rem;
 }
 .hero-title {
     font-size: 2.8rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #a78bfa, #f472b6, #34d399);
+    background: linear-gradient(135deg, #c084fc, #f472b6, #34d399);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin: 0;
     letter-spacing: -1px;
 }
 .hero-sub {
-    color: rgba(200,200,255,.65);
+    color: #cbd5e1 !important;
     font-size: 1.05rem;
     margin-top: .5rem;
 }
 
 /* ── Input box ── */
+.input-row, .input-row .block, .input-row label, .input-row fieldset, .input-row div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
 .input-row textarea, .input-row input {
-    background: rgba(255,255,255,.06) !important;
-    border: 1.5px solid rgba(108,99,255,.5) !important;
+    background: #1e1b4b !important;
+    border: 2px solid rgba(167,139,250,.6) !important;
     border-radius: 14px !important;
-    color: #e2e8ff !important;
+    color: #ffffff !important;
     font-size: 1rem !important;
+    font-weight: 500 !important;
     padding: .75rem 1rem !important;
-    transition: border .3s;
+    transition: all .3s ease !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+.input-row textarea::placeholder, .input-row input::placeholder {
+    color: #94a3b8 !important;
 }
 .input-row textarea:focus, .input-row input:focus {
-    border-color: #a78bfa !important;
-    box-shadow: 0 0 0 3px rgba(167,139,250,.2) !important;
+    border-color: #f472b6 !important;
+    box-shadow: 0 0 0 3px rgba(244,114,182,.3) !important;
 }
 
 /* ── Research button ── */
 #run-btn {
     background: linear-gradient(135deg, #7c3aed, #db2777) !important;
-    color: white !important;
+    color: #ffffff !important;
     border: none !important;
     border-radius: 14px !important;
     font-weight: 700 !important;
@@ -80,25 +104,32 @@ body, .gradio-container {
 }
 .stage {
     flex: 1;
-    background: rgba(255,255,255,.04);
-    border: 1px solid rgba(108,99,255,.2);
+    background: rgba(15,12,41,.7) !important;
+    border: 1px solid rgba(108,99,255,.3) !important;
     border-radius: 14px;
     padding: .9rem 1rem;
     text-align: center;
     transition: all .4s ease;
 }
 .stage.active {
-    border-color: #a78bfa;
-    background: rgba(167,139,250,.1);
-    box-shadow: 0 0 20px rgba(167,139,250,.3);
+    border-color: #a78bfa !important;
+    background: rgba(167,139,250,.2) !important;
+    box-shadow: 0 0 20px rgba(167,139,250,.4) !important;
     animation: pulse 1.5s infinite;
 }
 .stage.done {
-    border-color: #34d399;
-    background: rgba(52,211,153,.07);
+    border-color: #34d399 !important;
+    background: rgba(52,211,153,.15) !important;
 }
 .stage-icon { font-size: 1.5rem; }
-.stage-label { font-size: .72rem; font-weight: 700; color: rgba(200,200,255,.7); text-transform: uppercase; letter-spacing: .8px; margin-top: .3rem; }
+.stage-label {
+    font-size: .75rem;
+    font-weight: 800;
+    color: #f1f5f9 !important;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin-top: .3rem;
+}
 
 @keyframes pulse {
     0%, 100% { box-shadow: 0 0 15px rgba(167,139,250,.3); }
@@ -107,46 +138,93 @@ body, .gradio-container {
 
 /* ── Status bar ── */
 .status-bar {
-    background: rgba(255,255,255,.04);
-    border: 1px solid rgba(108,99,255,.2);
+    background: rgba(15,12,41,.8) !important;
+    border: 1px solid rgba(108,99,255,.35) !important;
     border-radius: 12px;
     padding: .75rem 1.25rem;
-    color: rgba(200,200,255,.8);
-    font-size: .9rem;
+    color: #f1f5f9 !important;
+    font-size: .95rem;
+    font-weight: 500;
     margin-bottom: .5rem;
     min-height: 42px;
 }
 
 /* ── Tabs ── */
-.tab-nav button {
+.tabs, .tab-nav {
     background: transparent !important;
-    color: rgba(200,200,255,.6) !important;
+    border-bottom: 1px solid rgba(108,99,255,.3) !important;
+}
+.tab-nav button, .tab-nav button *, .tabs button, .tabs button * {
+    background: transparent !important;
+    color: #94a3b8 !important;
     border: none !important;
     font-weight: 600 !important;
     font-size: .95rem !important;
 }
-.tab-nav button.selected {
-    color: #a78bfa !important;
-    border-bottom: 2px solid #a78bfa !important;
+.tab-nav button.selected, .tab-nav button.selected *, .tabs button.selected, .tabs button.selected * {
+    color: #c084fc !important;
+    border-bottom: 2px solid #c084fc !important;
+    font-weight: 700 !important;
 }
 
-/* ── Report & Review output ── */
+/* ── Report & Review output markdown ── */
 .report-box, .review-box {
-    background: rgba(15,12,41,.6) !important;
-    border: 1px solid rgba(108,99,255,.28) !important;
+    background: rgba(15,12,41,.85) !important;
+    border: 1px solid rgba(108,99,255,.35) !important;
     border-radius: 16px !important;
     padding: 1.5rem 2rem !important;
-    color: #e2e8ff !important;
     min-height: 120px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
 }
-.report-box h2, .report-box h3 { color: #a78bfa; }
-.report-box h4 { color: #34d399; }
+
+/* Specific text color targets inside markdown to override Gradio theme defaults */
+.report-box *, .review-box * {
+    color: #f1f5f9 !important;
+}
+.report-box h1, .report-box h2, .report-box h3,
+.review-box h1, .review-box h2, .review-box h3 {
+    color: #c084fc !important;
+    font-weight: 700 !important;
+    margin-top: 1rem !important;
+    margin-bottom: 0.5rem !important;
+}
+.report-box h4, .report-box h5,
+.review-box h4, .review-box h5 {
+    color: #34d399 !important;
+    font-weight: 600 !important;
+}
+.report-box p, .review-box p,
+.report-box li, .review-box li,
+.report-box td, .review-box td,
+.report-box th, .review-box th,
+.report-box span, .review-box span {
+    color: #e2e8ff !important;
+    line-height: 1.7 !important;
+    font-size: 1rem !important;
+}
+.report-box strong, .review-box strong,
+.report-box b, .review-box b {
+    color: #f472b6 !important;
+    font-weight: 700 !important;
+}
+.report-box code, .review-box code {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #f472b6 !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+}
+.report-box blockquote, .review-box blockquote {
+    border-left: 4px solid #a78bfa !important;
+    background: rgba(167,139,250,.1) !important;
+    padding: 0.5rem 1rem !important;
+    color: #e2e8ff !important;
+}
 
 /* ── Score badge ── */
 .score-badge {
     display: inline-block;
     background: linear-gradient(135deg, #a78bfa, #f472b6);
-    color: white;
+    color: white !important;
     padding: .3rem 1.1rem;
     border-radius: 30px;
     font-weight: 700;
@@ -155,9 +233,12 @@ body, .gradio-container {
     box-shadow: 0 4px 15px rgba(167,139,250,.4);
 }
 
-/* ── Download button ── */
+/* ── Download button & component ── */
+.download-btn, .download-btn * {
+    color: #f1f5f9 !important;
+}
 .download-btn button {
-    background: linear-gradient(135deg, #065f46, #047857) !important;
+    background: linear-gradient(135deg, #059669, #10b981) !important;
     color: white !important;
     border-radius: 10px !important;
     font-weight: 600 !important;
@@ -166,21 +247,24 @@ body, .gradio-container {
 }
 .download-btn button:hover {
     transform: translateY(-1px) !important;
-    box-shadow: 0 6px 20px rgba(4,120,87,.5) !important;
+    box-shadow: 0 6px 20px rgba(16,185,129,.5) !important;
 }
 
 /* ── Sidebar info cards ── */
 .info-card {
-    background: rgba(255,255,255,.03);
-    border: 1px solid rgba(108,99,255,.2);
+    background: rgba(15,12,41,.7) !important;
+    border: 1px solid rgba(108,99,255,.3) !important;
     border-radius: 12px;
-    padding: 1rem;
-    margin-bottom: .75rem;
-    color: rgba(200,200,255,.75);
-    font-size: .85rem;
-    line-height: 1.6;
+    padding: 1.1rem;
+    margin-bottom: .85rem;
+    color: #e2e8ff !important;
+    font-size: .9rem;
+    line-height: 1.65;
 }
-.info-card b { color: #a78bfa; }
+.info-card b, .info-card strong {
+    color: #c084fc !important;
+    font-size: 0.95rem;
+}
 
 footer { display: none !important; }
 """
@@ -290,7 +374,7 @@ def run_pipeline(topic: str):
     )
 
 # ── Build UI ──────────────────────────────────────────────────────────────────
-with gr.Blocks(css=CSS, title="Deep Research Agent", theme=gr.themes.Base()) as app:
+with gr.Blocks(css=CSS, title="Deep Research Agent", theme=gr.themes.Default(dark_mode=True)) as app:
 
     # Hero
     gr.HTML("""
@@ -346,7 +430,7 @@ with gr.Blocks(css=CSS, title="Deep Research Agent", theme=gr.themes.Base()) as 
                 3️⃣ Report generation<br>
                 4️⃣ AI peer review & scoring
             </div>
-            <div class="info-card" style="font-size:.75rem; color: rgba(200,200,255,.35)">
+            <div class="info-card" style="font-size:.75rem; color: #cbd5e1">
                 Built with LangChain · LangGraph · Gradio
             </div>
             """)

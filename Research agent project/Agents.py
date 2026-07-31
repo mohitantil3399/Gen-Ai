@@ -18,7 +18,7 @@ groq_client = ChatOpenAI(
     base_url = "https://api.groq.com/openai/v1",
     model = "llama-3.3-70b-versatile",
     temperature=0.1,
-    timeout=60,
+    timeout=30,
 ) 
 openrouter_api = os.getenv("OPENROUTER_API_KEY")
 #creating client for openrouter
@@ -27,7 +27,7 @@ openrouter_client = ChatOpenAI(
     base_url = "https://openrouter.ai/api/v1",
     model= "nvidia/nemotron-3-ultra-550b-a55b:free",
     temperature=0.1,
-    timeout=60,
+    timeout=30,
 )
 #1st agent 
 def search_agent():
